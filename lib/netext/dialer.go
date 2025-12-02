@@ -84,7 +84,7 @@ func (d *Dialer) ResolveAddr(addr string) (net.IP, int, error) {
 		return nil, 0, err
 	}
 
-	return remote.IP, remote.Port, nil
+	return remote.IPs[0], remote.Port, nil
 }
 
 // IOSamples returns samples for data send and received since it last call and zeros out.
@@ -123,8 +123,8 @@ func (d *Dialer) getDialAddr(addr string) (*types.Host, error) {
 	}
 
 	for _, ipnet := range d.Blacklist {
-		if ipnet.Contains(remote.IP) {
-			return nil, BlackListedIPError{ip: remote.IP, net: ipnet}
+		if len(remote.IPs) > 0 && ipnet.Contains(remote.IPs[0]) {
+			return nil, BlackListedIPError{ip: remote.IPs[0], net: ipnet}
 		}
 	}
 
@@ -146,8 +146,18 @@ func (d *Dialer) findRemote(addr string) (*types.Host, error) {
 
 	if d.Hosts != nil {
 		remote, e := d.getConfiguredHost(addr, host, port)
-		if e != nil || remote != nil {
-			return remote, e
+		if e != nil {
+			return nil, e
+		}
+		if remote != nil {
+			if len(remote.IPs) > 1 {
+				picked := d.Resolver.Pick(host, remote.IPs)
+				if picked == nil {
+					return nil, fmt.Errorf("no IP selected for %s", host)
+				}
+				remote.IPs = []net.IP{picked}
+			}
+			return remote, nil
 		}
 	}
 

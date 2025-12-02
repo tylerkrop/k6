@@ -37,15 +37,25 @@ func (n NullHosts) MarshalJSON() ([]byte, error) {
 		return []byte(nullJSON), nil
 	}
 
-	jsonMap := make(map[string]string)
+	jsonMap := make(map[string]interface{})
 	for k, v := range n.Trie.source {
-		var right string
-		if v.Port != 0 {
-			right = v.String()
-		} else {
-			right = v.IP.String()
+		if len(v.IPs) > 1 {
+			list := make([]string, 0, len(v.IPs))
+			for _, ip := range v.IPs {
+				if v.Port != 0 {
+					list = append(list, net.JoinHostPort(ip.String(), strconv.Itoa(v.Port)))
+				} else {
+					list = append(list, ip.String())
+				}
+			}
+			jsonMap[k] = list
+		} else if len(v.IPs) == 1 {
+			if v.Port != 0 {
+				jsonMap[k] = v.String()
+			} else {
+				jsonMap[k] = v.IPs[0].String()
+			}
 		}
-		jsonMap[k] = right
 	}
 
 	return json.Marshal(jsonMap)
@@ -59,23 +69,42 @@ func (n *NullHosts) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	jsonSource := make(map[string]string)
+	var jsonSource map[string]interface{}
 	if err := json.Unmarshal(data, &jsonSource); err != nil {
 		return err
 	}
 
 	source := make(map[string]Host)
 	for k, v := range jsonSource {
-		ip, port, err := net.SplitHostPort(v)
-		if err == nil {
-			pInt, err := strconv.Atoi(port)
+		switch val := v.(type) {
+		case string:
+			h, err := parseHost(val)
 			if err != nil {
 				return err
 			}
-
-			source[k] = Host{IP: net.ParseIP(ip), Port: pInt}
-		} else {
-			source[k] = Host{IP: net.ParseIP(v)}
+			source[k] = h
+		case []interface{}:
+			var ips []net.IP
+			var port int
+			for _, item := range val {
+				s, ok := item.(string)
+				if !ok {
+					return fmt.Errorf("invalid host value: %v", item)
+				}
+				h, err := parseHost(s)
+				if err != nil {
+					return err
+				}
+				if port == 0 {
+					port = h.Port
+				} else if h.Port != 0 && h.Port != port {
+					return fmt.Errorf("conflicting ports for host %s", k)
+				}
+				ips = append(ips, h.IPs...)
+			}
+			source[k] = Host{IPs: ips, Port: port}
+		default:
+			return fmt.Errorf("invalid host value type for %s", k)
 		}
 	}
 
@@ -86,6 +115,18 @@ func (n *NullHosts) UnmarshalJSON(data []byte) error {
 	n.Trie = hosts
 	n.Valid = true
 	return nil
+}
+
+func parseHost(v string) (Host, error) {
+	ip, port, err := net.SplitHostPort(v)
+	if err == nil {
+		pInt, err := strconv.Atoi(port)
+		if err != nil {
+			return Host{}, err
+		}
+		return Host{IPs: []net.IP{net.ParseIP(ip)}, Port: pInt}, nil
+	}
+	return Host{IPs: []net.IP{net.ParseIP(v)}}, nil
 }
 
 // Hosts is wrapper around trieNode to integrate with net.TCPAddr

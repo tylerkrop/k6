@@ -736,12 +736,12 @@ func TestHost(t *testing.T) {
 	}{
 		{
 			"1.2.3.4",
-			&types.Host{IP: net.ParseIP("1.2.3.4")},
+			&types.Host{IPs: []net.IP{net.ParseIP("1.2.3.4")}},
 			"",
 		},
 		{
 			"1.2.3.4:80",
-			&types.Host{IP: net.ParseIP("1.2.3.4"), Port: 80},
+			&types.Host{IPs: []net.IP{net.ParseIP("1.2.3.4")}, Port: 80},
 			"",
 		},
 		{
@@ -751,17 +751,17 @@ func TestHost(t *testing.T) {
 		},
 		{
 			"2001:0db8:0000:0000:0000:ff00:0042:8329",
-			&types.Host{IP: net.ParseIP("2001:0db8:0000:0000:0000:ff00:0042:8329")},
+			&types.Host{IPs: []net.IP{net.ParseIP("2001:0db8:0000:0000:0000:ff00:0042:8329")}},
 			"",
 		},
 		{
 			"2001:db8::68",
-			&types.Host{IP: net.ParseIP("2001:db8::68")},
+			&types.Host{IPs: []net.IP{net.ParseIP("2001:db8::68")}},
 			"",
 		},
 		{
 			"[2001:db8::68]:80",
-			&types.Host{IP: net.ParseIP("2001:db8::68"), Port: 80},
+			&types.Host{IPs: []net.IP{net.ParseIP("2001:db8::68")}, Port: 80},
 			"",
 		},
 		{

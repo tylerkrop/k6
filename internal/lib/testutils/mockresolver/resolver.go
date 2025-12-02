@@ -62,3 +62,11 @@ func (r *MockResolver) Unset(host string) {
 	defer r.m.Unlock()
 	delete(r.hosts, host)
 }
+
+// Pick returns the first IP from the list.
+func (r *MockResolver) Pick(host string, ips []net.IP) net.IP {
+	if len(ips) > 0 {
+		return ips[0]
+	}
+	return nil
+}

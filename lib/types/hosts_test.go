@@ -41,25 +41,25 @@ func TestHosts(t *testing.T) {
 
 	hosts, err := NewHosts(map[string]Host{
 		// IPv4
-		"simple.io":              {IP: net.ParseIP("1.2.3.4")},
-		"simple.io:80":           {IP: net.ParseIP("1.2.3.4"), Port: 80},
-		"simple.io:443":          {IP: net.ParseIP("1.2.3.4"), Port: 8443},
-		"only-port.io:443":       {IP: net.ParseIP("5.6.7.8"), Port: 8443},
-		"*.wildcard.io":          {IP: net.ParseIP("9.10.11.12")},
-		"specific.wildcard.io":   {IP: net.ParseIP("90.100.110.120")},
-		"*wildcard-2.io":         {IP: net.ParseIP("13.14.15.16")},
-		"specific.wildcard-2.io": {IP: net.ParseIP("130.140.150.160")},
-		"with-UPPER-case.io":     {IP: net.ParseIP("17.18.19.20")},
+		"simple.io":              {IPs: []net.IP{net.ParseIP("1.2.3.4")}},
+		"simple.io:80":           {IPs: []net.IP{net.ParseIP("1.2.3.4")}, Port: 80},
+		"simple.io:443":          {IPs: []net.IP{net.ParseIP("1.2.3.4")}, Port: 8443},
+		"only-port.io:443":       {IPs: []net.IP{net.ParseIP("5.6.7.8")}, Port: 8443},
+		"*.wildcard.io":          {IPs: []net.IP{net.ParseIP("9.10.11.12")}},
+		"specific.wildcard.io":   {IPs: []net.IP{net.ParseIP("90.100.110.120")}},
+		"*wildcard-2.io":         {IPs: []net.IP{net.ParseIP("13.14.15.16")}},
+		"specific.wildcard-2.io": {IPs: []net.IP{net.ParseIP("130.140.150.160")}},
+		"with-UPPER-case.io":     {IPs: []net.IP{net.ParseIP("17.18.19.20")}},
 
 		// IPv6
-		"simple-ipv6.io":              {IP: net.ParseIP("aa::bb")},
-		"simple-ipv6.io:80":           {IP: net.ParseIP("aa::bb"), Port: 80},
-		"simple-ipv6.io:443":          {IP: net.ParseIP("aa::bb"), Port: 8443},
-		"only-port-ipv6.io:443":       {IP: net.ParseIP("cc::dd"), Port: 8443},
-		"*.wildcard-ipv6.io":          {IP: net.ParseIP("ee::ff")},
-		"specific.wildcard-ipv6.io":   {IP: net.ParseIP("ee:11::ff")},
-		"*wildcard-2-ipv6.io":         {IP: net.ParseIP("aa::aa")},
-		"specific.wildcard-2-ipv6.io": {IP: net.ParseIP("a1::a1")},
+		"simple-ipv6.io":              {IPs: []net.IP{net.ParseIP("aa::bb")}},
+		"simple-ipv6.io:80":           {IPs: []net.IP{net.ParseIP("aa::bb")}, Port: 80},
+		"simple-ipv6.io:443":          {IPs: []net.IP{net.ParseIP("aa::bb")}, Port: 8443},
+		"only-port-ipv6.io:443":       {IPs: []net.IP{net.ParseIP("cc::dd")}, Port: 8443},
+		"*.wildcard-ipv6.io":          {IPs: []net.IP{net.ParseIP("ee::ff")}},
+		"specific.wildcard-ipv6.io":   {IPs: []net.IP{net.ParseIP("ee:11::ff")}},
+		"*wildcard-2-ipv6.io":         {IPs: []net.IP{net.ParseIP("aa::aa")}},
+		"specific.wildcard-2-ipv6.io": {IPs: []net.IP{net.ParseIP("a1::a1")}},
 	})
 
 	require.NoError(t, err)
@@ -195,10 +195,16 @@ func TestHostsJSON(t *testing.T) {
 	t.Parallel()
 
 	hosts, err := NewNullHosts(map[string]Host{
-		"example.com":           {IP: net.ParseIP("1.2.3.4"), Port: 0},
-		"example-port.com":      {IP: net.ParseIP("5.6.7.8"), Port: 443},
-		"example-ipv6.com":      {IP: net.ParseIP("aa::bb"), Port: 0},
-		"example-port-ipv6.com": {IP: net.ParseIP("cc::dd"), Port: 443},
+		"example.com":           {IPs: []net.IP{net.ParseIP("1.2.3.4")}, Port: 0},
+		"example-port.com":      {IPs: []net.IP{net.ParseIP("5.6.7.8")}, Port: 443},
+		"example-ipv6.com":      {IPs: []net.IP{net.ParseIP("aa::bb")}, Port: 0},
+		"example-port-ipv6.com": {IPs: []net.IP{net.ParseIP("cc::dd")}, Port: 443},
+	})
+	require.NoError(t, err)
+
+	multiHosts, err := NewNullHosts(map[string]Host{
+		"multi.com":      {IPs: []net.IP{net.ParseIP("1.1.1.1"), net.ParseIP("2.2.2.2")}, Port: 0},
+		"multi-port.com": {IPs: []net.IP{net.ParseIP("3.3.3.3"), net.ParseIP("4.4.4.4")}, Port: 80},
 	})
 	require.NoError(t, err)
 
@@ -214,6 +220,13 @@ func TestHostsJSON(t *testing.T) {
 	"example-port.com":"5.6.7.8:443",
 	"example-ipv6.com":"aa::bb",
 	"example-port-ipv6.com":"[cc::dd]:443"
+}`,
+		},
+		{
+			t: multiHosts, marshal: `
+{
+	"multi.com":["1.1.1.1", "2.2.2.2"],
+	"multi-port.com":["3.3.3.3:80", "4.4.4.4:80"]
 }`,
 		},
 	}

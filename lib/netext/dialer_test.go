@@ -16,13 +16,13 @@ func TestDialerAddr(t *testing.T) {
 	dialer := NewDialer(net.Dialer{}, newResolver())
 	hosts, err := types.NewHosts(
 		map[string]types.Host{
-			"example.com":                {IP: net.ParseIP("3.4.5.6")},
-			"example.com:443":            {IP: net.ParseIP("3.4.5.6"), Port: 8443},
-			"example.com:8080":           {IP: net.ParseIP("3.4.5.6"), Port: 9090},
-			"example-deny-host.com":      {IP: net.ParseIP("8.9.10.11")},
-			"example-ipv6.com":           {IP: net.ParseIP("2001:db8::68")},
-			"example-ipv6.com:443":       {IP: net.ParseIP("2001:db8::68"), Port: 8443},
-			"example-ipv6-deny-host.com": {IP: net.ParseIP("::1")},
+			"example.com":                {IPs: []net.IP{net.ParseIP("3.4.5.6")}},
+			"example.com:443":            {IPs: []net.IP{net.ParseIP("3.4.5.6")}, Port: 8443},
+			"example.com:8080":           {IPs: []net.IP{net.ParseIP("3.4.5.6")}, Port: 9090},
+			"example-deny-host.com":      {IPs: []net.IP{net.ParseIP("8.9.10.11")}},
+			"example-ipv6.com":           {IPs: []net.IP{net.ParseIP("2001:db8::68")}},
+			"example-ipv6.com:443":       {IPs: []net.IP{net.ParseIP("2001:db8::68")}, Port: 8443},
+			"example-ipv6-deny-host.com": {IPs: []net.IP{net.ParseIP("::1")}},
 		})
 	require.NoError(t, err)
 	dialer.Hosts = hosts
@@ -76,7 +76,7 @@ func TestDialerAddrBlockHostnamesStar(t *testing.T) {
 	t.Parallel()
 	dialer := NewDialer(net.Dialer{}, newResolver())
 	hosts, err := types.NewHosts(map[string]types.Host{
-		"example.com": {IP: net.ParseIP("3.4.5.6")},
+		"example.com": {IPs: []net.IP{net.ParseIP("3.4.5.6")}},
 	})
 	require.NoError(t, err)
 	dialer.Hosts = hosts
@@ -112,10 +112,10 @@ func TestDialerAddrBlockHostnamesStar(t *testing.T) {
 // Benchmarks /etc/hosts like hostname mapping
 func BenchmarkDialerHosts(b *testing.B) {
 	hosts, err := types.NewHosts(map[string]types.Host{
-		"k6.io":                {IP: []byte("192.168.1.1"), Port: 80},
-		"specific.k6.io":       {IP: []byte("192.168.1.2"), Port: 80},
-		"grafana.com":          {IP: []byte("aa::ff"), Port: 80},
-		"specific.grafana.com": {IP: []byte("aa:bb:::ff"), Port: 80},
+		"k6.io":                {IPs: []net.IP{[]byte("192.168.1.1")}, Port: 80},
+		"specific.k6.io":       {IPs: []net.IP{[]byte("192.168.1.2")}, Port: 80},
+		"grafana.com":          {IPs: []net.IP{[]byte("aa::ff")}, Port: 80},
+		"specific.grafana.com": {IPs: []net.IP{[]byte("aa:bb:::ff")}, Port: 80},
 	})
 	require.NoError(b, err)
 
@@ -140,13 +140,13 @@ func TestDialerResolveAddr(t *testing.T) {
 	dialer := NewDialer(net.Dialer{}, newResolver())
 	hosts, err := types.NewHosts(
 		map[string]types.Host{
-			"example.com":                {IP: net.ParseIP("3.4.5.6")},
-			"example.com:443":            {IP: net.ParseIP("3.4.5.6"), Port: 8443},
-			"example.com:8080":           {IP: net.ParseIP("3.4.5.6"), Port: 9090},
-			"example-deny-host.com":      {IP: net.ParseIP("8.9.10.11")},
-			"example-ipv6.com":           {IP: net.ParseIP("2001:db8::68")},
-			"example-ipv6.com:443":       {IP: net.ParseIP("2001:db8::68"), Port: 8443},
-			"example-ipv6-deny-host.com": {IP: net.ParseIP("::1")},
+			"example.com":                {IPs: []net.IP{net.ParseIP("3.4.5.6")}},
+			"example.com:443":            {IPs: []net.IP{net.ParseIP("3.4.5.6")}, Port: 8443},
+			"example.com:8080":           {IPs: []net.IP{net.ParseIP("3.4.5.6")}, Port: 9090},
+			"example-deny-host.com":      {IPs: []net.IP{net.ParseIP("8.9.10.11")}},
+			"example-ipv6.com":           {IPs: []net.IP{net.ParseIP("2001:db8::68")}},
+			"example-ipv6.com:443":       {IPs: []net.IP{net.ParseIP("2001:db8::68")}, Port: 8443},
+			"example-ipv6-deny-host.com": {IPs: []net.IP{net.ParseIP("::1")}},
 		})
 	require.NoError(t, err)
 	dialer.Hosts = hosts

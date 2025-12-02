@@ -7,7 +7,10 @@ import (
 
 // Host stores information about IP and port
 // for a host.
-type Host net.TCPAddr
+type Host struct {
+	IPs  []net.IP
+	Port int
+}
 
 // NewHost creates a pointer to a new address with an IP object.
 func NewHost(ip net.IP, portString string) (*Host, error) {
@@ -24,26 +27,29 @@ func NewHost(ip net.IP, portString string) (*Host, error) {
 	}
 
 	return &Host{
-		IP:   ip,
+		IPs:  []net.IP{ip},
 		Port: port,
 	}, nil
 }
 
 // String converts a Host into a string.
 func (h *Host) String() string {
-	return (*net.TCPAddr)(h).String()
+	if h == nil || len(h.IPs) == 0 {
+		return ""
+	}
+	return (&net.TCPAddr{IP: h.IPs[0], Port: h.Port}).String()
 }
 
 // MarshalText implements the encoding.TextMarshaler interface.
 // The encoding is the same as returned by String, with one exception:
 // When len(ip) is zero, it returns an empty slice.
 func (h *Host) MarshalText() ([]byte, error) {
-	if h == nil || len(h.IP) == 0 {
+	if h == nil || len(h.IPs) == 0 {
 		return []byte(""), nil
 	}
 
-	if len(h.IP) != net.IPv4len && len(h.IP) != net.IPv6len {
-		return nil, &net.AddrError{Err: "invalid IP address", Addr: h.IP.String()}
+	if len(h.IPs[0]) != net.IPv4len && len(h.IPs[0]) != net.IPv6len {
+		return nil, &net.AddrError{Err: "invalid IP address", Addr: h.IPs[0].String()}
 	}
 
 	return []byte(h.String()), nil

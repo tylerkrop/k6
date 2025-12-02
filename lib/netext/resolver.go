@@ -15,6 +15,7 @@ type MultiResolver func(host string) ([]net.IP, error)
 // Resolver is an interface that returns DNS information about a given host.
 type Resolver interface {
 	LookupIP(host string) (net.IP, error)
+	Pick(host string, ips []net.IP) net.IP
 }
 
 type resolver struct {
@@ -155,6 +156,13 @@ func (r *resolver) applyPolicy(ips []net.IP) (retIPs []net.IP) {
 	}
 
 	return retIPs
+}
+
+// Pick selects a single IP from the given list of IPs according to the
+// configured select and policy options.
+func (r *resolver) Pick(host string, ips []net.IP) net.IP {
+	ips = r.applyPolicy(ips)
+	return r.selectOne(host, ips)
 }
 
 func groupByVersion(ips []net.IP) (ip4 []net.IP, ip6 []net.IP) {
