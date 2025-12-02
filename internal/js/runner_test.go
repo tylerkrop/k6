@@ -1109,7 +1109,7 @@ func TestVUIntegrationHosts(t *testing.T) {
 		Throw: null.BoolFrom(true),
 		Hosts: func() types.NullHosts {
 			hosts, er := types.NewNullHosts(map[string]types.Host{
-				"test.loadimpact.com": {IP: net.ParseIP("127.0.0.1")},
+				"test.loadimpact.com": {IPs: []net.IP{net.ParseIP("127.0.0.1")}},
 			})
 			require.NoError(t, er)
 

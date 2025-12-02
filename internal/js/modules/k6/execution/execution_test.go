@@ -397,7 +397,7 @@ func TestOptionsTestFull(t *testing.T) {
 				Hosts: func() types.NullHosts {
 					hs, err := types.NewNullHosts(map[string]types.Host{
 						"test.k6.io": {
-							IP:   []byte{0x01, 0x02, 0x03, 0x04},
+							IPs:  []net.IP{{0x01, 0x02, 0x03, 0x04}},
 							Port: 8443,
 						},
 					})
